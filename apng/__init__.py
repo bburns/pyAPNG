@@ -274,7 +274,21 @@ class APNG:
 		:arg dict options: The options for :class:`FrameControl`.
 		"""
 		self.append(PNG.open_any(file), **options)
+
+	def append_text_chunk(self, key, value):
+		"""Append a key, value pair as a tEXt chunk to the PNG.
 		
+		:arg str key: The Latin-1 string key, 1-79 characters.
+		:arg str value: The Latin-1 string value.
+		"""
+		# see https://www.w3.org/TR/PNG/#11tEXt
+		type = 'tEXt'
+		assert(len(key) > 0 and len(key) < 80)
+		data = key + '\0' + value
+		chunk = make_chunk(type, str.encode(data))
+		png, control = self.frames[0]
+		png.chunks.append((type, chunk))
+
 	def to_bytes(self):
 		"""Convert the entire image to bytes.
 		
