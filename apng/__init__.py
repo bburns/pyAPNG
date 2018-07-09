@@ -56,6 +56,33 @@ def make_chunk(chunk_type, chunk_data):
 	out += chunk_data + struct.pack("!I", binascii.crc32(chunk_data) & 0xffffffff)
 	return out
 	
+def make_text_chunk(type, key, value):
+	"""Create a text chunk with a key value pair.
+	See https://www.w3.org/TR/PNG/#11textinfo for text chunk information.
+
+	Usage: 
+
+		from apng import APNG, make_text_chunk
+
+		im = APNG.open("file.png")
+		png, control = im.frames[0]
+		png.chunks.append(make_text_chunk("tEXt", "Comment", "some text"))
+		im.save("file.png")
+
+	:arg str type: Text chunk type: "tEXt", "zTXt", or "iTXt":
+
+		tEXt uses Latin-1 characters.
+		zTXt uses Latin-1 characters, compressed with zlib.
+		iTXt uses UTF-8 characters.
+
+	:arg str key: The key string, 1-79 characters.
+	:arg str value: The value string.
+	:rtype: bytes
+	"""
+	assert(len(key) > 0 and len(key) < 80)
+	data = key + "\0" + value
+	return make_chunk(type, str.encode(data))
+ 
 def read_file(file):
 	"""Read ``file`` into ``bytes``.
 	
@@ -274,20 +301,6 @@ class APNG:
 		:arg dict options: The options for :class:`FrameControl`.
 		"""
 		self.append(PNG.open_any(file), **options)
-
-	def append_text_chunk(self, key, value):
-		"""Append a key, value pair as a tEXt chunk to the PNG.
-		
-		:arg str key: The Latin-1 string key, 1-79 characters.
-		:arg str value: The Latin-1 string value.
-		"""
-		# see https://www.w3.org/TR/PNG/#11tEXt
-		type = 'tEXt'
-		assert(len(key) > 0 and len(key) < 80)
-		data = key + '\0' + value
-		chunk = make_chunk(type, str.encode(data))
-		png, control = self.frames[0]
-		png.chunks.append((type, chunk))
 
 	def to_bytes(self):
 		"""Convert the entire image to bytes.
