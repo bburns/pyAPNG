@@ -42,7 +42,7 @@ def parse_chunks(b):
 	while i < len(b):
 		data_len, = struct.unpack("!I", b[i:i+4])
 		type_ = b[i+4:i+8].decode("latin-1")
-		yield type_, b[i:i+data_len+12]
+		yield Chunk(type_, b[i:i+data_len+12])
 		i += data_len + 12
 
 def make_chunk(chunk_type, chunk_data):
@@ -175,7 +175,9 @@ class Chunk(namedtuple("Chunk", ["type", "data"])):
 	def to_bytes(self):
 		"""Convert the chunk into bytes.
 		
-		:return: Bytes of chunk data which could be used to construct the PNG, including chunk type, data, and CRC.
+		:return: Bytes of chunk data which could be used to construct the PNG,
+			including chunk length, type, data, and CRC.
+		
 		:rtype: bytes
 		"""
 		return make_chunk(*self)
