@@ -95,6 +95,7 @@ def make_text_chunk(
 	:arg str translated_key: The translated keyword for iTXt.
 	:rtype: Chunk
 	"""
+	# pylint: disable=redefined-builtin
 	if type == "tEXt":
 		data = key.encode("latin-1") + b"\0" + value.encode("latin-1")
 	elif type == "zTXt":
