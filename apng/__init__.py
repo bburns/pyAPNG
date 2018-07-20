@@ -13,6 +13,7 @@ import binascii
 import itertools
 import io
 import zlib
+from collections import namedtuple
 
 __version__ = "0.3.1"
 
@@ -169,24 +170,15 @@ def file_to_png(fp):
 		PIL.Image.open(fp).save(dest, "PNG", optimize=True)
 		return dest.getvalue()
 		
-class Chunk:
+class Chunk(namedtuple("Chunk", ["type", "data"])):
 	"""PNG data chunk"""
-	def __init__(self, type, data):
-		"""Create a data chunk for PNG.
-		
-		:arg str type: Chunk type.
-		:arg bytes data: Chunk data.
-		"""
-		self.type = type
-		self.data = data
-		
 	def to_bytes(self):
 		"""Convert the chunk into bytes.
 		
 		:return: Bytes of chunk data which could be used to construct the PNG, including chunk type, data, and CRC.
 		:rtype: bytes
 		"""
-		return make_chunk(self.type, self.data)
+		return make_chunk(*self)
 	
 class PNG:
 	"""Represent a PNG image."""
