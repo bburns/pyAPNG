@@ -12,6 +12,7 @@ import struct
 import binascii
 import itertools
 import io
+import zlib
 
 __version__ = "0.3.1"
 
@@ -56,7 +57,9 @@ def make_chunk(chunk_type, chunk_data):
 	out += chunk_data + struct.pack("!I", binascii.crc32(chunk_data) & 0xffffffff)
 	return out
 	
-def make_text_chunk(type, key, value):
+def make_text_chunk(
+		type="tEXt", key="Comment", value=None,
+		compression_flag=0, compression_method=0, lang="", translated_key=""):
 	"""Create a text chunk with a key value pair.
 	See https://www.w3.org/TR/PNG/#11textinfo for text chunk information.
 
@@ -76,12 +79,45 @@ def make_text_chunk(type, key, value):
 		iTXt uses UTF-8 characters.
 
 	:arg str key: The key string, 1-79 characters.
-	:arg str value: The value string.
-	:rtype: bytes
+	:arg value: The text value.
+
+		If ``value`` is a :class:`str`, this function would encode it into
+		:class:`bytes` and compress it.
+		
+		If ``value`` is a :class:`bytes`, this function just concat the value
+		directly.
+		
+	:type value: bytes or str
+	:arg int compression_flag: The compression flag for iTXt.
+	:arg int compression_method: The compression method for zTXt and iTXt.
+	:arg str lang: The language tag for iTXt.
+	:arg str translated_key: The translated keyword for iTXt.
+	:rtype: Chunk
 	"""
-	assert(len(key) > 0 and len(key) < 80)
-	data = key + "\0" + value
-	return make_chunk(type, str.encode(data))
+	if type == "tEXt":
+		data = key.encode("latin-1") + b"\0" + value.encode("latin-1")
+	elif type == "zTXt":
+		data = key.encode("latin-1") + struct.pack("!xb", compression_method)
+		if isinstance(value, bytes):
+			data += value
+		else:
+			data += zlib.compress(value.encode("latin-1"))
+	elif type == "iTXt":
+		data = (
+			key.encode("latin-1") +
+			struct.pack("!xbb", compression_flag, compression_method) +
+			lang.encode("latin-1") + b"\0" +
+			translated_key.encode("utf-8") + b"\0"
+		)
+		if isinstance(value, bytes):
+			data += value
+		elif compression_flag:
+			data += zlib.compress(value.encode("utf-8"))
+		else:
+			data += value.encode("utf-8")
+	else:
+		raise TypeError("unknown type {!r}".format(type))
+	return Chunk(type, data)
  
 def read_file(file):
 	"""Read ``file`` into ``bytes``.
