@@ -1,4 +1,5 @@
 #! python3
+# coding=utf-8
 
 import json
 from apng import APNG
@@ -34,21 +35,21 @@ class MakeTextChunk(unittest.TestCase):
 		
 	def test_itxt(self):
 		from apng import make_text_chunk, make_chunk
-		chunk_type, data = make_text_chunk(type="iTXt", value="ＳＯＭＥ　ＴＥＸＴ")
+		chunk_type, data = make_text_chunk(type="iTXt", value=u"ＳＯＭＥ　ＴＥＸＴ")
 		self.assertEqual(chunk_type, "iTXt")
-		self.assertEqual(data, make_chunk("iTXt", b"Comment\0\0\0\0\0" + "ＳＯＭＥ　ＴＥＸＴ".encode("utf-8")))
+		self.assertEqual(data, make_chunk("iTXt", b"Comment\0\0\0\0\0" + u"ＳＯＭＥ　ＴＥＸＴ".encode("utf-8")))
 		
 	def test_itxt_compressed(self):
 		import zlib
 		from apng import make_text_chunk, make_chunk
-		chunk_type, data = make_text_chunk(type="iTXt", value="ＳＯＭＥ　ＴＥＸＴ", compression_flag=1)
+		chunk_type, data = make_text_chunk(type="iTXt", value=u"ＳＯＭＥ　ＴＥＸＴ", compression_flag=1)
 		self.assertEqual(chunk_type, "iTXt")
 		self.assertEqual(
 			data,
 			make_chunk(
 				"iTXt",
 				b"Comment\0\1\0\0\0" +
-					zlib.compress("ＳＯＭＥ　ＴＥＸＴ".encode("utf-8"))
+					zlib.compress(u"ＳＯＭＥ　ＴＥＸＴ".encode("utf-8"))
 			)
 		)
 

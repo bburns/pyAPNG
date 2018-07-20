@@ -55,7 +55,7 @@ def make_chunk(chunk_type, chunk_data):
 	return out
 	
 def make_text_chunk(
-		type="tEXt", key="Comment", value=None,
+		type="tEXt", key="Comment", value="",
 		compression_flag=0, compression_method=0, lang="", translated_key=""):
 	"""Create a text chunk with a key value pair.
 	See https://www.w3.org/TR/PNG/#11textinfo for text chunk information.
@@ -78,15 +78,10 @@ def make_text_chunk(
 		iTXt uses UTF-8 characters.
 
 	:arg str key: The key string, 1-79 characters.
-	:arg value: The text value.
-
-		If ``value`` is a :class:`str`, this function would encode it into
-		:class:`bytes` and compress it if needed.
+	
+	:arg str value: The text value. It would be encoded into
+		:class:`bytes` and compressed if needed.
 		
-		If ``value`` is a :class:`bytes`, this function just concat the value
-		directly.
-		
-	:type value: bytes or str
 	:arg int compression_flag: The compression flag for iTXt.
 	:arg int compression_method: The compression method for zTXt and iTXt.
 	:arg str lang: The language tag for iTXt.
@@ -97,11 +92,10 @@ def make_text_chunk(
 	if type == "tEXt":
 		data = key.encode("latin-1") + b"\0" + value.encode("latin-1")
 	elif type == "zTXt":
-		data = key.encode("latin-1") + struct.pack("!xb", compression_method)
-		if isinstance(value, bytes):
-			data += value
-		else:
-			data += zlib.compress(value.encode("latin-1"))
+		data = (
+			key.encode("latin-1") + struct.pack("!xb", compression_method) +
+			zlib.compress(value.encode("latin-1"))
+		)
 	elif type == "iTXt":
 		data = (
 			key.encode("latin-1") +
@@ -109,9 +103,7 @@ def make_text_chunk(
 			lang.encode("latin-1") + b"\0" +
 			translated_key.encode("utf-8") + b"\0"
 		)
-		if isinstance(value, bytes):
-			data += value
-		elif compression_flag:
+		if compression_flag:
 			data += zlib.compress(value.encode("utf-8"))
 		else:
 			data += value.encode("utf-8")
