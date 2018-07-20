@@ -64,7 +64,9 @@ def make_text_chunk(
 	"""Create a text chunk with a key value pair.
 	See https://www.w3.org/TR/PNG/#11textinfo for text chunk information.
 
-	Usage: 
+	Usage:
+	
+	.. code:: python
 
 		from apng import APNG, make_text_chunk
 
@@ -83,7 +85,7 @@ def make_text_chunk(
 	:arg value: The text value.
 
 		If ``value`` is a :class:`str`, this function would encode it into
-		:class:`bytes` and compress it.
+		:class:`bytes` and compress it if needed.
 		
 		If ``value`` is a :class:`bytes`, this function just concat the value
 		directly.
@@ -172,25 +174,26 @@ def file_to_png(fp):
 		return dest.getvalue()
 		
 class Chunk(namedtuple("Chunk", ["type", "data"])):
-	"""PNG data chunk"""
+	"""A namedtuple to represent the PNG chunk"""
 	def to_bytes(self):
 		"""Convert the chunk into bytes.
-		
-		:return: Bytes of chunk data which could be used to construct the PNG,
-			including chunk length, type, data, and CRC.
 		
 		:rtype: bytes
 		"""
 		return make_chunk(*self)
 	
 class PNG:
-	"""Represent a PNG image."""
+	"""Represent a PNG image.
+	"""
 	def __init__(self):
 		self.hdr = None
 		self.end = None
 		self.width = None
 		self.height = None
 		self.chunks = []
+		"""A list of :class:`Chunk`. After reading a PNG file, the bytes
+		are parsed into multiple chunks. You can remove/add chunks into
+		this array before calling :func:`to_bytes`."""
 		
 	def init(self):
 		"""Extract some info from chunks"""
