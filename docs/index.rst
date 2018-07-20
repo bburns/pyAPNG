@@ -20,7 +20,6 @@ Classes
 -------
 
 .. autoclass:: Chunk
-  :members: to_bytes
 
 .. autoclass:: PNG
   :members: open, open_any, from_bytes, to_bytes, save

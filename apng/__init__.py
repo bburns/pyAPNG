@@ -29,12 +29,8 @@ def parse_chunks(b):
 	"""Parse PNG bytes into multiple chunks. 
 	
 	:arg bytes b: The raw bytes of the PNG file.
-	:return: A generator yielding ``(chunk_type, chunk_data)``.
-	
-		* ``chunk_type``: The type of the chunk.
-		* ``chunk_data``: The data of the chunk, **including length, type, data, and crc**.
-		
-	:rtype: Iterator[tuple(str, bytes)]
+	:return: A generator yielding :class:`Chunk`.
+	:rtype: Iterator[Chunk]
 	"""
 	# skip signature
 	i = 8
@@ -121,7 +117,7 @@ def make_text_chunk(
 			data += value.encode("utf-8")
 	else:
 		raise TypeError("unknown type {!r}".format(type))
-	return Chunk(type, data)
+	return Chunk(type, make_chunk(type, data))
  
 def read_file(file):
 	"""Read ``file`` into ``bytes``.
@@ -174,13 +170,13 @@ def file_to_png(fp):
 		return dest.getvalue()
 		
 class Chunk(namedtuple("Chunk", ["type", "data"])):
-	"""A namedtuple to represent the PNG chunk"""
-	def to_bytes(self):
-		"""Convert the chunk into bytes.
-		
-		:rtype: bytes
-		"""
-		return make_chunk(*self)
+	"""A namedtuple to represent the PNG chunk.
+	
+	:arg str type: The chunk type.
+	:arg bytes data: The raw bytes of the chunk, including chunk length, type,
+		data, and CRC.
+	"""
+	pass
 	
 class PNG:
 	"""Represent a PNG image.
